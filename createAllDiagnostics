@@ -1,0 +1,51 @@
+#!/bin/bash
+
+inputFile=$1
+
+# Scrape variable names and ordering
+nVar=`tail -1 $inputFile | awk -F, '{print NF}'`
+
+header=`grep -v '^#\|^$' $inputFile | head -1`
+
+varNames=()
+i=1
+while [ $i -le $nVar ]
+do
+    varNames=(${varNames[@]} `echo $header | awk -F, '{print $'$i'}' | sed 's,\.,_,g'`)
+    let ++i
+done
+
+# Prepare latex
+cat latexHeader > diagnostics.tex
+
+# Create diagnostics for each variable
+i=0
+while [ $i -lt $nVar ]
+do
+    let j=i+1
+    ./createDiagnostics $inputFile $j ${varNames[$i]}
+
+    latexName=`echo ${varNames[$i]} | sed 's,_,\\\\\\\\\_,g'`
+    sed -e 's,VARNAME,'"$latexName"',g' -e 's,IMAGENAME,'${varNames[$i]}',g' latexBody >> diagnostics.tex
+
+    if [ $j -ne $nVar ]; then
+        echo '\pagebreak' >> diagnostics.tex
+        echo '' >> diagnostics.tex
+    fi
+
+    let ++i
+done
+
+echo '\end{document}' >> diagnostics.tex
+
+# Compile latex
+pdflatex diagnostics.tex
+
+# Clean up
+mv diagnostics.pdf temp
+
+rm diagnostics*
+rm *.eps
+rm *.pdf
+
+mv temp diagnostics.pdf

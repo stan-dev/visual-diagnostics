@@ -1,0 +1,7 @@
+\section*{VARNAME}
+
+\begin{figure}[h]
+\centering
+\subfigure{\includegraphics[width=5in]{IMAGENAME_trace.eps}}
+\end{figure}
+

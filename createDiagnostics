@@ -1,0 +1,31 @@
+#!/bin/bash
+
+inputFile=$1
+index=$2
+name=$3
+
+############################################################
+#                                                          #
+#                     Get some gnuplot on                  #
+#                                                          #
+############################################################
+
+gnuplot << END
+
+set terminal postscript eps color font 'Times-Roman, 25' size 10, 5
+set output "${name}Trace.eps"
+
+set datafile separator ","
+
+set title "Trace"
+
+set xtics nomirror
+set xlabel 'Iteration'
+
+set ytics nomirror
+set ylabel '$name'
+
+plot \
+"$inputFile" using 0:$index every :::1::2 with lines ls 1 lw 2 linecolor rgb 'red' notitle
+
+END
