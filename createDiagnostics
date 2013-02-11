@@ -13,7 +13,7 @@ name=$3
 gnuplot << END
 
 set terminal postscript eps color font 'Times-Roman, 25' size 10, 5
-set output "${name}Trace.eps"
+set output "${name}_trace.eps"
 
 set datafile separator ","
 
@@ -26,6 +26,9 @@ set ytics nomirror
 set ylabel '$name'
 
 plot \
-"$inputFile" using 0:$index every :::1::2 with lines ls 1 lw 2 linecolor rgb 'red' notitle
+"$inputFile" using 0:$index with lines ls 1 lw 2 linecolor rgb 'red' notitle
+
+# For when the debug file has appropriate whitespace
+#"$inputFile" using 0:$index every :::1::2 with lines ls 1 lw 2 linecolor rgb 'red' notitle
 
 END
