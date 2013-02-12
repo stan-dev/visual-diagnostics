@@ -3,8 +3,9 @@
 inputFile=$1
 index=$2
 name=$3
-start=$4
-stepSize=$5
+displayName=$4
+start=$5
+stepSize=$6
 
 ############################################################
 #                                                          #
@@ -18,12 +19,12 @@ stepSize=$5
 
 gnuplot << END
 
-set terminal postscript eps color font 'Times-Roman, 25' size 10, 5
+set terminal postscript enhanced eps color font 'Times-Roman, 25' size 10, 5
 set output "${name}_trace.eps"
 
 set datafile separator ","
 
-set rmargin 15
+set rmargin 10
 
 set title "Trace"
 
@@ -31,17 +32,23 @@ set xtics nomirror
 set xlabel 'Iteration'
 
 set ytics nomirror
-set ylabel '$name'
+set ylabel "$displayName"
 
 stats "$inputFile" using $index every ::$start nooutput
+varMean=STATS_mean
 
-set label "Mean" at graph 1.01, first STATS_mean left
-set label "Mean+StepSize" at graph 1.01, first STATS_mean+$stepSize left
-set label "Mean-StepSize" at graph 1.01, first STATS_mean-$stepSize left
+stats "$inputFile" using 2 every ::$start nooutput
+depthMean=STATS_mean
+
+delta = 0.5 * $stepSize * depthMean
+
+set label "Mean" at graph 1.01, first varMean left
+set label "Mean + {/Symbol D}" at graph 1.01, first varMean+delta left
+set label "Mean - {/Symbol D}" at graph 1.01, first varMean-delta left
 
 plot \
-STATS_mean-$stepSize with filledcurves y1=STATS_mean+$stepSize lt 1 lc rgb '#bbbbdd' notitle, \
-STATS_mean with lines lt 3 lw 2 notitle, \
+varMean-delta with filledcurves y1=varMean+delta lt 1 lc rgb '#bbbbdd' notitle, \
+varMean with lines lt 3 lw 2 notitle, \
 "$inputFile" using 0:$index every ::$start with lines ls 1 lw 2 linecolor rgb 'red' notitle
 
 END
@@ -52,7 +59,7 @@ END
 
 gnuplot << END
 
-set terminal postscript eps color font 'Times-Roman, 25' size 5, 5
+set terminal postscript enhanced eps color font 'Times-Roman, 25' size 5, 5
 set output "${name}_logp.eps"
 
 set datafile separator ","
@@ -60,7 +67,7 @@ set datafile separator ","
 set title "logPosterior Correlation"
 
 set xtics nomirror
-set xlabel '$name'
+set xlabel "$displayName"
 
 set ytics nomirror
 set ylabel 'logPosterior'
@@ -76,7 +83,7 @@ END
 
 gnuplot << END
 
-set terminal postscript eps color font 'Times-Roman, 25' size 5, 5
+set terminal postscript enhanced eps color font 'Times-Roman, 25' size 5, 5
 set output "${name}_treedepth.eps"
 
 set datafile separator ","
@@ -84,7 +91,7 @@ set datafile separator ","
 set title "Tree Depth Correlation"
 
 set xtics nomirror
-set xlabel '$name'
+set xlabel "$displayName"
 
 stats "$inputFile" using 2 every ::$start nooutput
 

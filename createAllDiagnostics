@@ -30,10 +30,11 @@ do
     localStepSize=$(echo "scale=5; $stepSize * ${multipliers[$i]}" | bc)
     [ "${localStepSize[0]}" != "0" ] && localStepSize="0"$localStepSize
 
-    ./createDiagnostics $inputFile $j ${varNames[$i]} $dataStart $localStepSize
+    name=`echo ${varNames[$i]} | sed 's,_,\\\\\\\\\_,g'`
 
-    latexName=`echo ${varNames[$i]} | sed 's,_,\\\\\\\\\_,g'`
-    sed -e 's,VARNAME,'"$latexName"',g' -e 's,IMAGENAME,'${varNames[$i]}',g' \
+    ./createDiagnostics $inputFile $j ${varNames[$i]} "$name" $dataStart $localStepSize
+
+    sed -e 's,VARNAME,'"$name"',g' -e 's,IMAGENAME,'${varNames[$i]}',g' \
         -e 's,LSTEPSIZE,'$localStepSize',g' \
         -e 's,GSTEPSIZE,'$stepSize',g' -e 's,MULTIPLIER,'${multipliers[$i]}',g' \
         latexBody >> diagnostics.tex
