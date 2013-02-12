@@ -1,7 +1,11 @@
 \section*{VARNAME}
 
+Local Step Size = LSTEPSIZE = GSTEPSIZE (Global Step Size) * MULTIPLIER ($M^{-1}_{ii}$)
+
 \begin{figure}[h]
 \centering
 \subfigure{\includegraphics[width=5in]{IMAGENAME_trace.eps}}
+\subfigure{\includegraphics[width=2.75in]{IMAGENAME_logp.eps}}
+\subfigure{\includegraphics[width=2.75in]{IMAGENAME_treedepth.eps}}
 \end{figure}
 

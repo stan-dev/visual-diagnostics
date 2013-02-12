@@ -3,11 +3,16 @@
 inputFile=$1
 index=$2
 name=$3
+start=$4
 
 ############################################################
 #                                                          #
 #                     Get some gnuplot on                  #
 #                                                          #
+############################################################
+
+############################################################
+#                          Trace                           #
 ############################################################
 
 gnuplot << END
@@ -26,9 +31,57 @@ set ytics nomirror
 set ylabel '$name'
 
 plot \
-"$inputFile" using 0:$index with lines ls 1 lw 2 linecolor rgb 'red' notitle
+"$inputFile" using 0:$index every ::$start with lines ls 1 lw 2 linecolor rgb 'red' notitle
 
-# For when the debug file has appropriate whitespace
-#"$inputFile" using 0:$index every :::1::2 with lines ls 1 lw 2 linecolor rgb 'red' notitle
+END
+
+############################################################
+#                     logProb Correlation                  #
+############################################################
+
+gnuplot << END
+
+set terminal postscript eps color font 'Times-Roman, 25' size 5, 5
+set output "${name}_logp.eps"
+
+set datafile separator ","
+
+set title "logPosterior Correlation"
+
+set xtics nomirror
+set xlabel '$name'
+
+set ytics nomirror
+set ylabel 'logPosterior'
+
+plot \
+"$inputFile" using $index:1 every ::$start with points ls 1 ps 2 linecolor rgb 'blue' notitle
+
+END
+
+############################################################
+#                   Tree Depth Correlation                 #
+############################################################
+
+gnuplot << END
+
+set terminal postscript eps color font 'Times-Roman, 25' size 5, 5
+set output "${name}_treedepth.eps"
+
+set datafile separator ","
+
+set title "Tree Depth Correlation"
+
+set xtics nomirror
+set xlabel '$name'
+
+stats "$inputFile" using 2 every ::$start nooutput
+
+set ytics nomirror
+set ylabel 'Tree Depth'
+set yrange[STATS_min-1:STATS_max+1]
+
+plot \
+"$inputFile" using $index:2 every ::$start with points ls 1 ps 2 linecolor rgb 'blue' notitle
 
 END
