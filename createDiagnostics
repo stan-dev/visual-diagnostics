@@ -4,6 +4,7 @@ inputFile=$1
 index=$2
 name=$3
 start=$4
+stepSize=$5
 
 ############################################################
 #                                                          #
@@ -22,6 +23,8 @@ set output "${name}_trace.eps"
 
 set datafile separator ","
 
+set rmargin 15
+
 set title "Trace"
 
 set xtics nomirror
@@ -30,7 +33,15 @@ set xlabel 'Iteration'
 set ytics nomirror
 set ylabel '$name'
 
+stats "$inputFile" using $index every ::$start nooutput
+
+set label "Mean" at graph 1.01, first STATS_mean left
+set label "Mean+StepSize" at graph 1.01, first STATS_mean+$stepSize left
+set label "Mean-StepSize" at graph 1.01, first STATS_mean-$stepSize left
+
 plot \
+STATS_mean-$stepSize with filledcurves y1=STATS_mean+$stepSize lt 1 lc rgb '#bbbbdd' notitle, \
+STATS_mean with lines lt 3 lw 2 notitle, \
 "$inputFile" using 0:$index every ::$start with lines ls 1 lw 2 linecolor rgb 'red' notitle
 
 END
