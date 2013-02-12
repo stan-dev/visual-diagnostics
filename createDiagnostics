@@ -37,10 +37,10 @@ set ylabel "$displayName"
 stats "$inputFile" using $index every ::$start nooutput
 varMean=STATS_mean
 
-stats "$inputFile" using 2 every ::$start nooutput
-depthMean=STATS_mean
+stats "$inputFile" using (exp(\$2*log(2))) every ::$start nooutput
+lengthMean=STATS_mean
 
-delta = 0.5 * $stepSize * depthMean
+delta = 0.5 * $stepSize * lengthMean
 
 set label "Mean" at graph 1.01, first varMean left
 set label "Mean + {/Symbol D}" at graph 1.01, first varMean+delta left

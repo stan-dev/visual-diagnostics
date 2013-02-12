@@ -4,7 +4,7 @@
 \epsilon_{\mathrm{Local}} &= LSTEPSIZE \\
 &= GSTEPSIZE \left( \epsilon_{\mathrm{Global}} \right) * MULTIPLIER \left( M^{-1}_{ii} \right) \\
 \\
-\Delta &\equiv \frac{1}{2} \epsilon_{\mathrm{Local}} * \left< \text{Tree Depth} \right>
+\Delta &\equiv \frac{1}{2} \epsilon_{\mathrm{Local}} * \left< L \right> =  \frac{1}{2} \epsilon_{\mathrm{Local}} * \left< 2^{\text{Tree Depth}} \right>
 \end{align*}
 
 \begin{figure}[h]
