@@ -12,11 +12,58 @@ let nVar=(nCol-offset)/3
 rawNames=(`echo $header | tr ',' '\n' | grep -v ^p_ | grep -v ^g_ | sed 's,\.,_,g'`)
 varNames=(${rawNames[@]:$offset})
 
-#stepSize=`awk 'NR > '$dataStart' {print $0}' $inputFile | grep '^# step' | sed 's,# step size=,,'`
-#multipliers=(`awk 'NR > '$dataStart' {print $0}' $inputFile | grep '^# [0-9]' | sed 's,# ,,' | tr ',' '\n'`)
-
 # Prepare latex
 cat latexHeader > diagnostics.tex
+
+# Model information
+echo '\begin{table*}[h!]' >> diagnostics.tex
+echo '\begin{center}' >> diagnostics.tex
+echo '\renewcommand{\arraystretch}{1.2}' >> diagnostics.tex
+echo '\begin{tabular}{ll}' >> diagnostics.tex
+
+i=0
+while read line
+do
+
+    echo $line | grep -v '^#' > /dev/null
+    [ $? -eq 0 ] && break
+    targetDir=$file
+
+    name=`echo $line | awk -F= '{print $1}' | sed -e 's,# ,,' -e 's,_,{\\\textunderscore},g'`
+    value=`echo $line | awk -F= '{print $2}'`
+
+    let mod=i%2
+    if [ $mod -eq 1 ]; then
+        echo '\tabHead{'$name'} & '$value' \\' >> diagnostics.tex
+    else
+        echo '\rowcolor[gray]{0.8} \tabHead{'$name'} & '$value' \\' >> diagnostics.tex
+    fi
+
+    let ++i
+
+done < $inputFile
+
+echo '\end{tabular}' >> diagnostics.tex
+echo '\end{center}' >> diagnostics.tex
+echo '\end{table*}' >> diagnostics.tex
+echo '' >> diagnostics.tex
+
+# Algorithm information
+algo=`grep '^# (' $inputFile | sed -e 's,^# (,,' -e 's,)$,,'`
+stepSize=`grep '^# Step' $inputFile | sed 's,# Step size = ,,'`
+
+echo '\begin{table*}[h!]' >> diagnostics.tex
+echo '\begin{center}' >> diagnostics.tex
+echo '\renewcommand{\arraystretch}{1.2}' >> diagnostics.tex
+echo '\begin{tabular}{ll}' >> diagnostics.tex
+echo '\rowcolor[gray]{0.8} \tabHead{Algorithm} & '$algo'\\' >> diagnostics.tex
+echo '\tabHead{Nominal Step Size} & '$stepSize'\\' >> diagnostics.tex
+echo '\end{tabular}' >> diagnostics.tex
+echo '\end{center}' >> diagnostics.tex
+echo '\end{table*}' >> diagnostics.tex
+echo '' >> diagnostics.tex
+echo '\pagebreak' >> diagnostics.tex
+echo '' >> diagnostics.tex
 
 # Sample Info
 ./createDiagnostics $inputFile 1 "log_post" "Log Posterior"

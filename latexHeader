@@ -5,13 +5,12 @@
 \usepackage{amssymb, amsmath}
 \usepackage{epstopdf}
 \usepackage{subfigure}
+\usepackage[table]{xcolor}
+\usepackage[floatrow]{trivfloat}
 
-\date{}
+\trivfloat{algorithm}
 
+\newcommand{\tabHead}[1]{  \begin{minipage}[t]{4cm} \textbf{#1} \end{minipage} }
 \begin{document}
 
-ADD MODEL INFORMATION HERE
-
 Diagnostics created on \today
-
-\pagebreak
