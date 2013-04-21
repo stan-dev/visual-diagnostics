@@ -1,16 +1,19 @@
 \section*{VARNAME}
 
-\begin{align*}
-\epsilon_{\mathrm{Local}} &= LSTEPSIZE \\
-&= GSTEPSIZE \left( \epsilon_{\mathrm{Global}} \right) * MULTIPLIER \left( M^{-1}_{ii} \right) \\
-\\
-\Delta &\equiv \frac{1}{2} \epsilon_{\mathrm{Local}} * \left< L \right> =  \frac{1}{2} \epsilon_{\mathrm{Local}} * \left< 2^{\text{Tree Depth}} \right>
-\end{align*}
-
-\begin{figure}[h]
+\begin{figure}[h!]
 \centering
-\subfigure{\includegraphics[width=5in]{IMAGENAME_trace.eps}}
-\subfigure{\includegraphics[width=2.75in]{IMAGENAME_logp.eps}}
-\subfigure{\includegraphics[width=2.75in]{IMAGENAME_treedepth.eps}}
+\subfigure{\includegraphics[width=4.9in]{IMAGENAME_trace.eps}}
+\subfigure{\includegraphics[width=2.4in]{IMAGENAME_hist.eps}}
 \end{figure}
 
+\begin{figure}[h!]
+\centering
+\subfigure{\includegraphics[width=3.0in]{IMAGENAME_logp.eps}}
+\subfigure{\includegraphics[width=3.0in]{IMAGENAME_accept.eps}}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\subfigure{\includegraphics[width=3.0in]{IMAGENAME_stepsize.eps}}
+\subfigure{\includegraphics[width=3.0in]{IMAGENAME_treedepth.eps}}
+\end{figure}

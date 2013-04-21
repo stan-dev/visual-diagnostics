@@ -1,9 +1,17 @@
 \documentclass[11pt]{article}
-\usepackage{geometry}
+\usepackage[margin=0.5in]{geometry}
 \geometry{letterpaper}
 \usepackage{graphicx}
 \usepackage{amssymb, amsmath}
 \usepackage{epstopdf}
 \usepackage{subfigure}
 
+\date{}
+
 \begin{document}
+
+ADD MODEL INFORMATION HERE
+
+Diagnostics created on \today
+
+\pagebreak

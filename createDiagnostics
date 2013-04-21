@@ -4,8 +4,6 @@ inputFile=$1
 index=$2
 name=$3
 displayName=$4
-start=$5
-stepSize=$6
 
 ############################################################
 #                                                          #
@@ -24,9 +22,7 @@ set output "${name}_trace.eps"
 
 set datafile separator ","
 
-set rmargin 10
-
-set title "Trace"
+set title ""
 
 set xtics nomirror
 set xlabel 'Iteration'
@@ -34,27 +30,80 @@ set xlabel 'Iteration'
 set ytics nomirror
 set ylabel "$displayName"
 
-stats "$inputFile" using $index every ::$start nooutput
+stats "$inputFile" using $index nooutput
 varMean=STATS_mean
+varSigma=STATS_stddev
+varSigma = STATS_min == STATS_max ? 0.1 * abs(varMean) : varSigma
 
-stats "$inputFile" using (exp(\$2*log(2))) every ::$start nooutput
-lengthMean=STATS_mean
+stats "$inputFile" using 0 nooutput
+set xrange[STATS_min:STATS_max]
 
-delta = 0.5 * $stepSize * lengthMean
-
-set label "Mean" at graph 1.01, first varMean left
-set label "Mean + {/Symbol D}" at graph 1.01, first varMean+delta left
-set label "Mean - {/Symbol D}" at graph 1.01, first varMean-delta left
+set yrange[ * < varMean - varSigma : varMean + varSigma < * ]
 
 plot \
-varMean-delta with filledcurves y1=varMean+delta lt 1 lc rgb '#bbbbdd' notitle, \
-varMean with lines lt 3 lw 2 notitle, \
-"$inputFile" using 0:$index every ::$start with lines ls 1 lw 2 linecolor rgb 'red' notitle
+varMean-varSigma with filledcurves y1=varMean+varSigma lt 1 lc rgb '#bbbbdd' notitle, \
+varMean with lines lt 3 lw 5 lc rgb 'blue' notitle, \
+"$inputFile" using 0:$index with lines ls 1 lw 2 linecolor rgb 'red' notitle
 
 END
 
 ############################################################
-#                     logProb Correlation                  #
+#                         Histogram                        #
+############################################################
+
+gnuplot << END
+
+set datafile separator ","
+
+set title ""
+
+set xtics nomirror
+set xlabel "$displayName"
+
+unset ytics
+set format y ""
+
+stats "$inputFile" using $index nooutput
+
+varMean=STATS_mean
+varMedian=STATS_median
+
+varLeft = 7.5 * STATS_lo_quartile - 6.5 * STATS_up_quartile
+varLeft = varLeft < STATS_min ? STATS_min : varLeft
+varLeft = STATS_min == STATS_max ? 0.9 * STATS_mean : varLeft
+varLeft = varLeft > STATS_mean ? STATS_mean - abs(STATS_mean - STATS_median) : varLeft
+varRight = 7.5 * STATS_up_quartile - 6.5 * STATS_lo_quartile
+varRight = varRight > STATS_max ? STATS_max : varRight
+varRight = STATS_min == STATS_max ? 1.1 * STATS_mean : varRight
+varRight = varRight < STATS_mean ? STATS_mean + abs(STATS_mean - STATS_median) : varRight
+
+set label gprintf('Mean = %g', STATS_mean) at graph 0.1, graph 0.95 left
+set arrow from graph 0.025, graph 0.95 to graph 0.075, graph 0.95 lc rgb "red" lw 4 nohead front
+set arrow from first varMean, graph 0.0 to first varMean, graph (1.0/1.2) lc rgb "red" lw 4 nohead front
+
+set label gprintf('Median = %g', STATS_median) at graph 0.1, graph 0.875 left
+set arrow from graph 0.025, graph 0.875 to graph 0.075, graph 0.875 lt 3 lc rgb "red" lw 10 nohead front
+set arrow from first varMedian, graph 0.0 to first varMedian, graph (1.0/1.2) lt 3 lc rgb "red" lw 10 nohead front
+
+binwidth = (varRight - varLeft) / 20.0
+set boxwidth binwidth
+bin(x, width) = width * floor(x / width) + 0.5 * binwidth
+
+set style fill solid 1.0 border lc rgb 'blue'
+
+plot "$inputFile" using (bin(\$$index, binwidth)):(1.0) smooth freq with boxes lc rgb '#bbbbdd' notitle
+
+set terminal postscript enhanced eps color font 'Times-Roman, 25' size 5, 5
+set output "${name}_hist.eps"
+
+set xrange[varLeft:varRight]
+set yrange[0:1.2 * GPVAL_Y_MAX]
+replot
+
+END
+
+############################################################
+#                Log Probability Correlation               #
 ############################################################
 
 gnuplot << END
@@ -64,16 +113,64 @@ set output "${name}_logp.eps"
 
 set datafile separator ","
 
-set title "logPosterior Correlation"
+set title "Log Posterior Correlation"
 
 set xtics nomirror
 set xlabel "$displayName"
 
 set ytics nomirror
-set ylabel 'logPosterior'
+set ylabel 'Log Posterior'
 
 plot \
-"$inputFile" using $index:1 every ::$start with points ls 1 ps 2 linecolor rgb 'blue' notitle
+"$inputFile" using $index:1 with points ls 1 ps 2 linecolor rgb 'blue' notitle
+
+END
+
+############################################################
+#                 Acceptance Stat Correlation              #
+############################################################
+
+gnuplot << END
+
+set terminal postscript enhanced eps color font 'Times-Roman, 25' size 5, 5
+set output "${name}_accept.eps"
+
+set datafile separator ","
+
+set title "Mean Metropolis Acceptance Correlation"
+
+set xtics nomirror
+set xlabel "$displayName"
+
+set ytics nomirror
+set ylabel 'Mean Metropolis Acceptance'
+
+plot \
+"$inputFile" using $index:2 with points ls 1 ps 2 linecolor rgb 'blue' notitle
+
+END
+
+############################################################
+#                    Step Size Correlation                 #
+############################################################
+
+gnuplot << END
+
+set terminal postscript enhanced eps color font 'Times-Roman, 25' size 5, 5
+set output "${name}_stepsize.eps"
+
+set datafile separator ","
+
+set title "Step Size Correlation"
+
+set xtics nomirror
+set xlabel "$displayName"
+
+set ytics nomirror
+set ylabel 'Step Size'
+
+plot \
+"$inputFile" using $index:3 with points ls 1 ps 2 linecolor rgb 'blue' notitle
 
 END
 
@@ -93,13 +190,13 @@ set title "Tree Depth Correlation"
 set xtics nomirror
 set xlabel "$displayName"
 
-stats "$inputFile" using 2 every ::$start nooutput
+stats "$inputFile" using 2 nooutput
 
 set ytics nomirror
 set ylabel 'Tree Depth'
 set yrange[STATS_min-1:STATS_max+1]
 
 plot \
-"$inputFile" using $index:2 every ::$start with points ls 1 ps 2 linecolor rgb 'blue' notitle
+"$inputFile" using $index:4 with points ls 1 ps 2 linecolor rgb 'blue' notitle
 
 END

@@ -3,23 +3,75 @@
 inputFile=$1
 
 # Scrape variable names and ordering
-header=`grep -v ^#  $inputFile | head -1`
+offset=4
+
+header=`grep -v ^# $inputFile | head -1`
 nCol=`echo $header | tr ',' '\n' | wc -l`
-nVar=`echo $header | tr ',' '\n' | grep ^unconstrained | wc -l`
+let nVar=(nCol-offset)/3
 
-let offset=nCol-nVar
+rawNames=(`echo $header | tr ',' '\n' | grep -v ^p_ | grep -v ^g_ | sed 's,\.,_,g'`)
+varNames=(${rawNames[@]:$offset})
 
-varNames=(`echo $header | tr ',' '\n' | grep ^unconstrained | sed 's,\.,_,g'`)
-
-dataStart=`grep -nv ^# samples.csv | head -1 | sed 's,\([0-9]*\):.*,\1,'`
-
-stepSize=`awk 'NR > '$dataStart' {print $0}' $inputFile | grep '^# step' | sed 's,# step size=,,'`
-multipliers=(`awk 'NR > '$dataStart' {print $0}' $inputFile | grep '^# [0-9]' | sed 's,# ,,' | tr ',' '\n'`)
-
-let dataStart+=5
+#stepSize=`awk 'NR > '$dataStart' {print $0}' $inputFile | grep '^# step' | sed 's,# step size=,,'`
+#multipliers=(`awk 'NR > '$dataStart' {print $0}' $inputFile | grep '^# [0-9]' | sed 's,# ,,' | tr ',' '\n'`)
 
 # Prepare latex
 cat latexHeader > diagnostics.tex
+
+# Sample Info
+./createDiagnostics $inputFile 1 "log_post" "Log Posterior"
+./createDiagnostics $inputFile 2 "accept_stat" "Mean Metropolis Acceptance"
+
+echo '\section*{Sample Information}' >> diagnostics.tex
+echo '\begin{figure}[h!]' >> diagnostics.tex
+echo '\centering' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=4.9in]{log_post_trace.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=2.4in]{log_post_hist.eps}}' >> diagnostics.tex
+echo '\end{figure}' >> diagnostics.tex
+echo '\begin{figure}[h!]' >> diagnostics.tex
+echo '\centering' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=4.9in]{accept_stat_trace.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=2.4in]{accept_stat_hist.eps}}' >> diagnostics.tex
+echo '\end{figure}' >> diagnostics.tex
+echo '\begin{figure}[h!]' >> diagnostics.tex
+echo '\centering' >> diagnostics.tex
+echo '\includegraphics[width=2.6in]{accept_stat_logp.eps}' >> diagnostics.tex
+echo '\end{figure}' >> diagnostics.tex
+echo '\pagebreak' >> diagnostics.tex
+
+# Step Size Info
+./createDiagnostics $inputFile 3 "stepsize__" "Sampled Step Size"
+
+echo '\section*{Step Size Information}' >> diagnostics.tex
+echo '\begin{figure}[h!]' >> diagnostics.tex
+echo '\centering' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=4.9in]{stepsize___trace.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=2.4in]{stepsize___hist.eps}}' >> diagnostics.tex
+echo '\end{figure}' >> diagnostics.tex
+echo '\begin{figure}[h!]' >> diagnostics.tex
+echo '\centering' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=3.65in]{stepsize___logp.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=3.65in]{stepsize___accept.eps}}' >> diagnostics.tex
+echo '\end{figure}' >> diagnostics.tex
+echo '\pagebreak' >> diagnostics.tex
+
+# Tree Depth Info
+./createDiagnostics $inputFile 4 "depth__" "Tree Depth"
+
+echo '\section*{Tree Depth Information}' >> diagnostics.tex
+echo '\begin{figure}[h!]' >> diagnostics.tex
+echo '\centering' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=4.9in]{depth___trace.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=2.4in]{depth___hist.eps}}' >> diagnostics.tex
+echo '\end{figure}' >> diagnostics.tex
+echo '\begin{figure}[h!]' >> diagnostics.tex
+echo '\centering' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=3.0in]{depth___logp.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=3.0in]{depth___accept.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=3.0in]{depth___stepsize.eps}}' >> diagnostics.tex
+echo '\end{figure}' >> diagnostics.tex
+echo '\pagebreak' >> diagnostics.tex
+
 
 # Create diagnostics for each variable
 i=0
@@ -27,17 +79,25 @@ while [ $i -lt $nVar ]
 do
     let j=offset+i+1
 
-    localStepSize=$(echo "scale=5; $stepSize * ${multipliers[$i]}" | bc)
-    [ "${localStepSize[0]}" != "0" ] && localStepSize="0"$localStepSize
-
+    # Parameter
     name=`echo ${varNames[$i]} | sed 's,_,\\\\\\\\\_,g'`
 
-    ./createDiagnostics $inputFile $j ${varNames[$i]} "$name" $dataStart $localStepSize
+    ./createDiagnostics $inputFile $j ${varNames[$i]} "$name"
 
     sed -e 's,VARNAME,'"$name"',g' -e 's,IMAGENAME,'${varNames[$i]}',g' \
-        -e 's,LSTEPSIZE,'$localStepSize',g' \
-        -e 's,GSTEPSIZE,'$stepSize',g' -e 's,MULTIPLIER,'${multipliers[$i]}',g' \
         latexBody >> diagnostics.tex
+
+    # Gradient
+    ./createDiagnostics $inputFile $j g_${varNames[$i]} "$name Gradient"
+
+    sed -e 's,VARNAME,'"$name Gradient"',g' -e 's,IMAGENAME,g_'${varNames[$i]}',g' \
+    latexBody >> diagnostics.tex
+
+    # Momentum
+    ./createDiagnostics $inputFile $j p_${varNames[$i]} "$name Momentum"
+
+    sed -e 's,VARNAME,'"$name Momentum"',g' -e 's,IMAGENAME,p_'${varNames[$i]}',g' \
+    latexBody >> diagnostics.tex
 
     if [ $j -ne $nVar ]; then
         echo '\pagebreak' >> diagnostics.tex
