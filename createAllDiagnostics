@@ -13,7 +13,9 @@ rawNames=(`echo $header | tr ',' '\n' | grep -v ^p_ | grep -v ^g_ | sed 's,\.,_,
 varNames=(${rawNames[@]:$offset})
 
 # Prepare latex
-cat latexHeader > diagnostics.tex
+modelName=`grep '^# model' $inputFile | sed -e 's,# model=\(.*\)$,\1,' -e 's,# ,,' -e 's,_,{\\\\\\\textunderscore},g'`
+
+cat latexHeader | sed 's,MODELNAME,'$modelName',' > diagnostics.tex
 
 # Model information
 echo '\begin{table*}[h!]' >> diagnostics.tex
@@ -29,8 +31,13 @@ do
     [ $? -eq 0 ] && break
     targetDir=$file
 
+    [ "$line" == "#" ] && continue
+
     name=`echo $line | awk -F= '{print $1}' | sed -e 's,# ,,' -e 's,_,{\\\textunderscore},g'`
-    value=`echo $line | awk -F= '{print $2}'`
+    value=`echo $line | awk -F= '{print $2}' | sed -e 's,# ,,' -e 's,_,{\\\textunderscore},g'`
+
+    [ "$name" == "model" ] && continue
+    [ "$name" == "algorithm" ] && continue
 
     let mod=i%2
     if [ $mod -eq 1 ]; then
@@ -49,7 +56,7 @@ echo '\end{table*}' >> diagnostics.tex
 echo '' >> diagnostics.tex
 
 # Algorithm information
-algo=`grep '^# (' $inputFile | sed -e 's,^# (,,' -e 's,)$,,'`
+algo=`grep '^# algorithm=' $inputFile | sed -e 's,^# algorithm=,,'`
 stepSize=`grep '^# Step' $inputFile | sed 's,# Step size = ,,'`
 
 echo '\begin{table*}[h!]' >> diagnostics.tex
@@ -134,16 +141,20 @@ do
     sed -e 's,VARNAME,'"$name"',g' -e 's,IMAGENAME,'${varNames[$i]}',g' \
         latexBody >> diagnostics.tex
 
-    # Gradient
-    ./createDiagnostics $inputFile $j g_${varNames[$i]} "$name Gradient"
-
-    sed -e 's,VARNAME,'"$name Gradient"',g' -e 's,IMAGENAME,g_'${varNames[$i]}',g' \
-    latexBody >> diagnostics.tex
-
     # Momentum
+    let j+=nVar
+
     ./createDiagnostics $inputFile $j p_${varNames[$i]} "$name Momentum"
 
     sed -e 's,VARNAME,'"$name Momentum"',g' -e 's,IMAGENAME,p_'${varNames[$i]}',g' \
+    latexBody >> diagnostics.tex
+
+    # Gradient
+    let j+=nVar
+
+    ./createDiagnostics $inputFile $j g_${varNames[$i]} "$name Gradient"
+
+    sed -e 's,VARNAME,'"$name Gradient"',g' -e 's,IMAGENAME,g_'${varNames[$i]}',g' \
     latexBody >> diagnostics.tex
 
     if [ $j -ne $nVar ]; then
@@ -157,12 +168,14 @@ done
 echo '\end{document}' >> diagnostics.tex
 
 # Compile latex
-pdflatex diagnostics.tex
+pdflatex diagnostics.tex > /dev/null
 
 # Clean up
 mv diagnostics.pdf temp
 
-rm diagnostics*
+rm diagnostics.tex
+rm diagnostics.aux
+rm diagnostics.log
 rm *.eps
 rm *.pdf
 
