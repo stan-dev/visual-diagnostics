@@ -29,8 +29,10 @@ do
     [ $? -eq 0 ] && break
     targetDir=$file
 
+    [ "$line" == "#" ] && break
+
     name=`echo $line | awk -F= '{print $1}' | sed -e 's,# ,,' -e 's,_,{\\\textunderscore},g'`
-    value=`echo $line | awk -F= '{print $2}'`
+    value=`echo $line | awk -F= '{print $2}' | sed 's,_,{\\\textunderscore},g'`
 
     let mod=i%2
     if [ $mod -eq 1 ]; then
@@ -56,7 +58,7 @@ echo '\begin{table*}[h!]' >> diagnostics.tex
 echo '\begin{center}' >> diagnostics.tex
 echo '\renewcommand{\arraystretch}{1.2}' >> diagnostics.tex
 echo '\begin{tabular}{ll}' >> diagnostics.tex
-echo '\rowcolor[gray]{0.8} \tabHead{Algorithm} & '$algo'\\' >> diagnostics.tex
+#echo '\rowcolor[gray]{0.8} \tabHead{Algorithm} & '$algo'\\' >> diagnostics.tex
 echo '\tabHead{Nominal Step Size} & '$stepSize'\\' >> diagnostics.tex
 echo '\end{tabular}' >> diagnostics.tex
 echo '\end{center}' >> diagnostics.tex
@@ -157,7 +159,7 @@ done
 echo '\end{document}' >> diagnostics.tex
 
 # Compile latex
-pdflatex diagnostics.tex
+pdflatex diagnostics.tex > /dev/null
 
 # Clean up
 mv diagnostics.pdf temp
