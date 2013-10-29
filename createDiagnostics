@@ -190,7 +190,7 @@ set title "Tree Depth Correlation"
 set xtics nomirror
 set xlabel "$displayName"
 
-stats "$inputFile" using 2 nooutput
+stats "$inputFile" using 4 nooutput
 
 set ytics nomirror
 set ylabel 'Tree Depth'
