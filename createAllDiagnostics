@@ -3,7 +3,7 @@
 inputFile=$1
 
 # Scrape variable names and ordering
-offset=4
+offset=5
 
 header=`grep -v ^# $inputFile | head -1`
 nCol=`echo $header | tr ',' '\n' | wc -l`
@@ -13,9 +13,9 @@ rawNames=(`echo $header | tr ',' '\n' | grep -v ^p_ | grep -v ^g_ | sed 's,\.,_,
 varNames=(${rawNames[@]:$offset})
 
 # Prepare latex
-modelName=`grep '^# model' $inputFile | sed -e 's,# model=\(.*\)$,\1,' -e 's,# ,,' -e 's,_,{\\\\\\\textunderscore},g'`
+modelName=`grep '^# model' $inputFile | sed -e 's,# model = \(.*\)$,\1,' -e 's,# ,,' -e 's,_,{\\\\\\\textunderscore},g'`
 
-cat latexHeader | sed 's,MODELNAME,'$modelName',' > diagnostics.tex
+cat latexHeader | sed 's,MODELNAME,'"$modelName"',' > diagnostics.tex
 
 # Model information
 echo '\begin{table*}[h!]' >> diagnostics.tex
@@ -33,11 +33,11 @@ do
 
     [ "$line" == "#" ] && continue
 
-    name=`echo $line | awk -F= '{print $1}' | sed -e 's,# ,,' -e 's,_,{\\\textunderscore},g'`
-    value=`echo $line | awk -F= '{print $2}' | sed -e 's,# ,,' -e 's,_,{\\\textunderscore},g'`
+    name=`echo $line | awk -F' = ' '{print $1}' | sed -e 's,# ,,' -e 's,_,{\\\textunderscore},g'`
+    value=`echo $line | awk -F' = ' '{print $2}' | sed -e 's,# ,,' -e 's,_,{\\\textunderscore},g'`
 
     [ "$name" == "model" ] && continue
-    [ "$name" == "algorithm" ] && continue
+    [ "$value" == "" ] && continue
 
     let mod=i%2
     if [ $mod -eq 1 ]; then
@@ -56,14 +56,12 @@ echo '\end{table*}' >> diagnostics.tex
 echo '' >> diagnostics.tex
 
 # Algorithm information
-algo=`grep '^# algorithm=' $inputFile | sed -e 's,^# algorithm=,,'`
 stepSize=`grep '^# Step' $inputFile | sed 's,# Step size = ,,'`
 
 echo '\begin{table*}[h!]' >> diagnostics.tex
 echo '\begin{center}' >> diagnostics.tex
 echo '\renewcommand{\arraystretch}{1.2}' >> diagnostics.tex
 echo '\begin{tabular}{ll}' >> diagnostics.tex
-echo '\rowcolor[gray]{0.8} \tabHead{Algorithm} & '$algo'\\' >> diagnostics.tex
 echo '\tabHead{Nominal Step Size} & '$stepSize'\\' >> diagnostics.tex
 echo '\end{tabular}' >> diagnostics.tex
 echo '\end{center}' >> diagnostics.tex
