@@ -3,7 +3,7 @@
 inputFile=$1
 
 # Scrape variable names and ordering
-offset=5
+offset=6
 
 header=`grep -v ^# $inputFile | head -1`
 nCol=`echo $header | tr ',' '\n' | wc -l`
@@ -108,19 +108,36 @@ echo '\end{figure}' >> diagnostics.tex
 echo '\pagebreak' >> diagnostics.tex
 
 # Tree Depth Info
-./createDiagnostics $inputFile 4 "depth__" "Tree Depth"
+./createDiagnostics $inputFile 4 "treedepth__" "Tree Depth"
 
 echo '\section*{Tree Depth Information}' >> diagnostics.tex
 echo '\begin{figure}[h!]' >> diagnostics.tex
 echo '\centering' >> diagnostics.tex
-echo '\subfigure{\includegraphics[width=4.9in]{depth___trace.eps}}' >> diagnostics.tex
-echo '\subfigure{\includegraphics[width=2.4in]{depth___hist.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=4.9in]{treedepth___trace.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=2.4in]{treedepth___hist.eps}}' >> diagnostics.tex
 echo '\end{figure}' >> diagnostics.tex
 echo '\begin{figure}[h!]' >> diagnostics.tex
 echo '\centering' >> diagnostics.tex
-echo '\subfigure{\includegraphics[width=3.0in]{depth___logp.eps}}' >> diagnostics.tex
-echo '\subfigure{\includegraphics[width=3.0in]{depth___accept.eps}}' >> diagnostics.tex
-echo '\subfigure{\includegraphics[width=3.0in]{depth___stepsize.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=3.0in]{treedepth___logp.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=3.0in]{treedepth___accept.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=3.0in]{treedepth___stepsize.eps}}' >> diagnostics.tex
+echo '\end{figure}' >> diagnostics.tex
+echo '\pagebreak' >> diagnostics.tex
+
+# N Divergent Info
+./createDiagnostics $inputFile 6 "n_divergent__" "N Divergent"
+
+echo '\section*{N Divergent Information}' >> diagnostics.tex
+echo '\begin{figure}[h!]' >> diagnostics.tex
+echo '\centering' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=4.9in]{n_divergent___trace.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=2.4in]{n_divergent___hist.eps}}' >> diagnostics.tex
+echo '\end{figure}' >> diagnostics.tex
+echo '\begin{figure}[h!]' >> diagnostics.tex
+echo '\centering' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=3.0in]{n_divergent___logp.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=3.0in]{n_divergent___accept.eps}}' >> diagnostics.tex
+echo '\subfigure{\includegraphics[width=3.0in]{n_divergent___stepsize.eps}}' >> diagnostics.tex
 echo '\end{figure}' >> diagnostics.tex
 echo '\pagebreak' >> diagnostics.tex
 

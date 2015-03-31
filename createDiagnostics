@@ -77,6 +77,11 @@ varRight = varRight > STATS_max ? STATS_max : varRight
 varRight = STATS_min == STATS_max ? 1.1 * STATS_mean : varRight
 varRight = varRight < STATS_mean ? STATS_mean + abs(STATS_mean - STATS_median) : varRight
 
+if (varLeft == varRight) {
+  varLeft = -1;
+  varRight = 1;
+}
+
 set label gprintf('Mean = %g', STATS_mean) at graph 0.1, graph 0.95 left
 set arrow from graph 0.025, graph 0.95 to graph 0.075, graph 0.95 lc rgb "red" lw 4 nohead front
 set arrow from first varMean, graph 0.0 to first varMean, graph (1.0/1.2) lc rgb "red" lw 4 nohead front
